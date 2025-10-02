@@ -16,8 +16,7 @@ int create_process() {
 
 int main() {
     int pipe_id[2];
-    int err = pipe(pipe_id);
-    if (err == -1) {
+    if (pipe(pipe_id) == -1) {
         perror("pipe");
         return EXIT_FAILURE;
     }

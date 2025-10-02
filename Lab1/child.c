@@ -2,6 +2,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "unistd.h"
+#include <fcntl.h>
 
 const int BUF_SIZE = 256;
 
@@ -11,17 +12,19 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    FILE *f = fopen(argv[1], "r");
-    if (!f) {
-        perror("fopen");
+    int fd = open(argv[1], O_RDONLY);
+    if (fd == -1) {
+        perror("open");
         exit(EXIT_FAILURE);
     }
 
-    if (dup2(fileno(f), STDIN_FILENO) == -1) {
+    if (dup2(fd, STDIN_FILENO) == -1) {
         perror("dup2");
-        fclose(f);
+        close(fd);
         return EXIT_FAILURE;
     }
+    close(fd);
+
     char line[BUF_SIZE];
     while (fgets(line, sizeof(line), stdin)) {
         char *ptr = line;
@@ -34,5 +37,4 @@ int main(int argc, char *argv[]) {
         }
         printf("%f\n", res);
     }
-    fclose(f);
 }
