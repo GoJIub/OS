@@ -3,11 +3,10 @@
 #include "string.h"
 #include "unistd.h"
 
-const int BUF_SIZE = 256;
-
 int main() {
-    char line[BUF_SIZE];
-    while (fgets(line, sizeof(line), stdin)) {
+    size_t len;
+    char* line;
+    while (getline(&line, &len, stdin) != -1) {
         char *ptr = line;
         float x, res = 0;
         while (sscanf(ptr, "%f", &x) == 1) {
