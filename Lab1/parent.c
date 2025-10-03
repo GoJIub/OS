@@ -1,15 +1,16 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "unistd.h"
+#include "fcntl.h"
 #include "sys/wait.h"
 
 const int FN_SIZE = 256;
 
 int create_process() {
     pid_t pid = fork();
-    if (-1 == pid) {
+    if (pid == -1) {
         perror("fork");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     return pid;
 }
@@ -29,22 +30,37 @@ int main() {
         return EXIT_FAILURE;
     }
 
+    int fd = open(file_name, O_RDONLY);
+    if (fd == -1) {
+        perror("open");
+        return EXIT_FAILURE;
+    }
+
     pid_t pid = create_process();
     if (pid == 0) {
+        if (dup2(fd, STDIN_FILENO) == -1) {
+            perror("dup2 file->stdin");
+            _exit(EXIT_FAILURE);
+        }
+        close(fd);
+
         close(pipe_id[0]);
         if (dup2(pipe_id[1], STDOUT_FILENO) == -1) {
-            perror("dup2");
+            perror("dup2 pipe->stdout");
             _exit(EXIT_FAILURE);
         }
         close(pipe_id[1]);
 
-        execl("./child.out", "child.out", file_name, NULL);
+        execl("./child.out", "child.out", NULL);
         perror("execl");
         _exit(EXIT_FAILURE);
+
     } else {
+        close(fd);
         close(pipe_id[1]);
+
         if (dup2(pipe_id[0], STDIN_FILENO) == -1) {
-            perror("dup2");
+            perror("dup2 pipe->stdin");
             return EXIT_FAILURE;
         }
         close(pipe_id[0]);
@@ -62,4 +78,6 @@ int main() {
 
         wait(NULL);
     }
+
+    return EXIT_SUCCESS;
 }
