@@ -1,7 +1,7 @@
 /* dice_sim.c
-   Компиляция: gcc -O2 -pthread -std=c11 -o dice_sim dice_sim.c
-   Запуск: ./dice_sim K cur_round A_total B_total N max_threads
-   Пример: ./dice_sim 10 3 7 5 1000000 4
+   Компиляция: gcc -O2 -pthread -std=c11 -o dice_sim.out dice_sim.c
+   Запуск: ./dice_sim.out K cur_round A_total B_total N max_threads
+   Пример: ./dice_sim.out 10 3 7 5 1000000 4
 
    Изменения по сравнению с оригиналом:
    - Добавлен pthread_barrier_t для гарантированного ожидания старта потоков.
