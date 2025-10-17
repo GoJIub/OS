@@ -64,10 +64,6 @@ void *worker(void *argp) {
         else ++ties;
     }
 
-    arg->local.winsA = winsA;
-    arg->local.winsB = winsB;
-    arg->local.ties = ties;
-
     atomic_fetch_add(&g_winsA, winsA);
     atomic_fetch_add(&g_winsB, winsB);
     atomic_fetch_add(&g_ties, ties);
