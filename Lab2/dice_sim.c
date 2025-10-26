@@ -5,7 +5,6 @@
 #include <pthread.h>
 #include <time.h>
 #include <inttypes.h>
-#include <stdatomic.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
@@ -26,9 +25,11 @@ typedef struct {
     result_t local;
 } thread_arg_t;
 
-atomic_uint_fast64_t g_winsA;
-atomic_uint_fast64_t g_winsB;
-atomic_uint_fast64_t g_ties;
+uint64_t g_winsA = 0;
+uint64_t g_winsB = 0;
+uint64_t g_ties  = 0;
+
+pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static inline int roll_die(unsigned int *seed) {
     return (rand_r(seed) % 6) + 1;
@@ -64,9 +65,13 @@ void *worker(void *argp) {
         else ++ties;
     }
 
-    atomic_fetch_add(&g_winsA, winsA);
-    atomic_fetch_add(&g_winsB, winsB);
-    atomic_fetch_add(&g_ties, ties);
+    pthread_mutex_lock(&g_lock);
+
+    g_winsA += winsA;
+    g_winsB += winsB;
+    g_ties  += ties;
+
+    pthread_mutex_unlock(&g_lock);
 
     return NULL;
 }
@@ -92,10 +97,6 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    atomic_init(&g_winsA, 0);
-    atomic_init(&g_winsB, 0);
-    atomic_init(&g_ties, 0);
-
     int P = max_threads;
     pthread_t *threads = calloc(P, sizeof(pthread_t));
     thread_arg_t *targs = calloc(P, sizeof(thread_arg_t));
@@ -118,7 +119,6 @@ int main(int argc, char **argv) {
         targs[i].trials = base + (i < (int)rem ? 1 : 0);
         unsigned int seed = (unsigned int)time(NULL) ^ (unsigned int)getpid() ^ (unsigned int)(i*1103515245);
         targs[i].seed = seed;
-        targs[i].local.winsA = targs[i].local.winsB = targs[i].local.ties = 0;
 
         int rc = pthread_create(&threads[i], NULL, worker, &targs[i]);
         if (rc != 0) {
@@ -136,21 +136,20 @@ int main(int argc, char **argv) {
 
     clock_gettime(CLOCK_MONOTONIC, &tend);
 
-    uint64_t winsA = atomic_load(&g_winsA);
-    uint64_t winsB = atomic_load(&g_winsB);
-    uint64_t ties  = atomic_load(&g_ties);
-
     double elapsed = timespec_to_sec(&tend) - timespec_to_sec(&tstart);
 
     printf("Simulations: %lu\n", N);
     printf("Threads used: %d\n", P);
     printf("K=%d, cur_round=%d, remaining_rounds=%d\n", K, cur_round, (K - cur_round + 1) < 0 ? 0 : (K - cur_round + 1));
-    printf("Wins A: %lu (%.6f%%)\n", winsA, (double)winsA * 100.0 / N);
-    printf("Wins B: %lu (%.6f%%)\n", winsB, (double)winsB * 100.0 / N);
-    printf("Ties  : %lu (%.6f%%)\n", ties, (double)ties * 100.0 / N);
+    printf("Wins A: %lu (%.6f%%)\n", g_winsA, (double)g_winsA * 100.0 / N);
+    printf("Wins B: %lu (%.6f%%)\n", g_winsB, (double)g_winsB * 100.0 / N);
+    printf("Ties  : %lu (%.6f%%)\n", g_ties, (double)g_ties * 100.0 / N);
     printf("Elapsed time: %.6f s\n", elapsed);
 
     free(threads);
     free(targs);
+
+    pthread_mutex_destroy(&g_lock);
+
     return 0;
 }
