@@ -57,5 +57,8 @@ dkms.conf
 # vscode
 .vscode
 
-#venv
+# venv
 *.venv
+
+# data
+*/data/*
