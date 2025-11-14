@@ -128,41 +128,6 @@ int pthread_mutex_destroy_checked(pthread_mutex_t *m) {
     return 0;
 }
 
-int parse_int(const char *s, const char *name) {
-    char *endptr;
-    errno = 0;
-    long val = strtol(s, &endptr, 10);
-    if (errno != 0 || *endptr != '\0' || val > INT_MAX || val < INT_MIN) {
-        fprintf(stderr, "Invalid integer for %s: '%s'\n", name, s);
-        exit(EXIT_FAILURE);
-    }
-    return (int)val;
-}
-
-uint64_t parse_ull(const char *s, const char *name) {
-    char *endptr;
-    errno = 0;
-    unsigned long long val = strtoull(s, &endptr, 10);
-    if (errno != 0 || *endptr != '\0') {
-        fprintf(stderr, "Invalid unsigned integer for %s: '%s'\n", name, s);
-        exit(EXIT_FAILURE);
-    }
-    return (uint64_t)val;
-}
-
-int printf_checked(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    int rc = vprintf(fmt, args);
-    va_end(args);
-    printf("[syscall] printf() wrote %d chars\n", rc);
-    if (rc < 0) {
-        perror("printf");
-        exit(EXIT_FAILURE);
-    }
-    return rc;
-}
-
 static inline int roll_die(unsigned int *seed) {
     return (rand_r(seed) % 6) + 1;
 }
@@ -216,12 +181,12 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    int K = parse_int(argv[1], "K");
-    int cur_round = parse_int(argv[2], "cur_round");
-    int A_total = parse_int(argv[3], "A_total");
-    int B_total = parse_int(argv[4], "B_total");
-    uint64_t N = parse_ull(argv[5], "N");
-    int max_threads = parse_int(argv[6], "max_threads");
+    int K = atoi(argv[1]);
+    int cur_round = atoi(argv[2]);
+    int A_total = atoi(argv[3]);
+    int B_total = atoi(argv[4]);
+    uint64_t N = strtoull(argv[5], NULL, 10);
+    int max_threads = atoi(argv[6]);
 
     int P = max_threads;
 
@@ -259,13 +224,13 @@ int main(int argc, char **argv) {
     clock_gettime_checked(CLOCK_MONOTONIC, &tend);
     double elapsed = timespec_to_sec(&tend) - timespec_to_sec(&tstart);
 
-    printf_checked("Simulations: %lu\n", N);
-    printf_checked("Threads used: %d\n", P);
-    printf_checked("K=%d, cur_round=%d, remaining_rounds=%d\n", K, cur_round, (K - cur_round + 1) < 0 ? 0 : (K - cur_round + 1));
-    printf_checked("Wins A: %lu (%.6f%%)\n", g_winsA, (double)g_winsA * 100.0 / N);
-    printf_checked("Wins B: %lu (%.6f%%)\n", g_winsB, (double)g_winsB * 100.0 / N);
-    printf_checked("Ties  : %lu (%.6f%%)\n", g_ties, (double)g_ties * 100.0 / N);
-    printf_checked("Elapsed time: %.6f s\n", elapsed);
+    printf("Simulations: %lu\n", N);
+    printf("Threads used: %d\n", P);
+    printf("K=%d, cur_round=%d, remaining_rounds=%d\n", K, cur_round, (K - cur_round + 1) < 0 ? 0 : (K - cur_round + 1));
+    printf("Wins A: %lu (%.6f%%)\n", g_winsA, (double)g_winsA * 100.0 / N);
+    printf("Wins B: %lu (%.6f%%)\n", g_winsB, (double)g_winsB * 100.0 / N);
+    printf("Ties  : %lu (%.6f%%)\n", g_ties, (double)g_ties * 100.0 / N);
+    printf("Elapsed time: %.6f s\n", elapsed);
 
     pthread_mutex_destroy_checked(&g_lock);
 
