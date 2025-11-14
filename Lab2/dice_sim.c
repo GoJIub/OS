@@ -7,8 +7,6 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdarg.h>
-#include <limits.h>
 
 typedef struct {
     uint64_t winsA;
@@ -37,7 +35,6 @@ pid_t getpid_checked(void) {
         perror("getpid");
         exit(EXIT_FAILURE);
     }
-    printf("[syscall] getpid() = %d\n", pid);
     return pid;
 }
 
@@ -47,7 +44,6 @@ time_t time_checked(time_t *tloc) {
         perror("time");
         exit(EXIT_FAILURE);
     }
-    printf("[syscall] time() = %ld\n", t);
     return t;
 }
 
@@ -57,14 +53,11 @@ int clock_gettime_checked(clockid_t clk_id, struct timespec *tp) {
         perror("clock_gettime");
         exit(EXIT_FAILURE);
     }
-    printf("[syscall] clock_gettime(%d) = 0, tv_sec=%ld, tv_nsec=%ld\n",
-           clk_id, tp->tv_sec, tp->tv_nsec);
     return rc;
 }
 
 void *calloc_checked(size_t nmemb, size_t size) {
     void *p = calloc(nmemb, size);
-    printf("[syscall] calloc(%zu, %zu) = %p\n", nmemb, size, p);
     if (!p) {
         perror("calloc");
         exit(EXIT_FAILURE);
@@ -75,7 +68,6 @@ void *calloc_checked(size_t nmemb, size_t size) {
 int pthread_create_checked(pthread_t *thread, const pthread_attr_t *attr,
                            void *(*start_routine)(void *), void *arg) {
     int rc = pthread_create(thread, attr, start_routine, arg);
-    printf("[syscall] pthread_create() = %d\n", rc);
     if (rc != 0) {
         errno = rc;
         perror("pthread_create");
@@ -86,7 +78,6 @@ int pthread_create_checked(pthread_t *thread, const pthread_attr_t *attr,
 
 int pthread_join_checked(pthread_t thread, void **retval) {
     int rc = pthread_join(thread, retval);
-    printf("[syscall] pthread_join() = %d\n", rc);
     if (rc != 0) {
         errno = rc;
         perror("pthread_join");
@@ -97,7 +88,6 @@ int pthread_join_checked(pthread_t thread, void **retval) {
 
 int pthread_mutex_lock_checked(pthread_mutex_t *m) {
     int rc = pthread_mutex_lock(m);
-    printf("[syscall] pthread_mutex_lock() = %d\n", rc);
     if (rc != 0) {
         errno = rc;
         perror("pthread_mutex_lock");
@@ -108,7 +98,6 @@ int pthread_mutex_lock_checked(pthread_mutex_t *m) {
 
 int pthread_mutex_unlock_checked(pthread_mutex_t *m) {
     int rc = pthread_mutex_unlock(m);
-    printf("[syscall] pthread_mutex_unlock() = %d\n", rc);
     if (rc != 0) {
         errno = rc;
         perror("pthread_mutex_unlock");
@@ -119,7 +108,6 @@ int pthread_mutex_unlock_checked(pthread_mutex_t *m) {
 
 int pthread_mutex_destroy_checked(pthread_mutex_t *m) {
     int rc = pthread_mutex_destroy(m);
-    printf("[syscall] pthread_mutex_destroy() = %d\n", rc);
     if (rc != 0) {
         errno = rc;
         perror("pthread_mutex_destroy");
