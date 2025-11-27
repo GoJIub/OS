@@ -23,20 +23,27 @@ int main() {
     const char *shm_name = "/shm_float";
 
     int fd = shm_open(shm_name, O_RDWR, 0666);
-    if (fd == -1) { perror("shm_open"); exit(EXIT_FAILURE); }
+    if (fd == -1) {
+        perror("shm_open");
+        exit(EXIT_FAILURE);
+    }
 
-    struct shmseg *shm = mmap(NULL, sizeof(struct shmseg),
-                              PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (shm == MAP_FAILED) { perror("mmap"); exit(EXIT_FAILURE); }
+    struct shmseg *shm = mmap(NULL, sizeof(struct shmseg), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (shm == MAP_FAILED) {
+        perror("mmap");
+        exit(EXIT_FAILURE);
+    }
 
-    // Child: ждём имя файла
     sem_wait(&shm->sem_file_full);
     char filename[FN_SIZE];
     strncpy(filename, shm->filename, FN_SIZE);
     sem_post(&shm->sem_file_empty);
 
     FILE *fp = fopen(filename, "r");
-    if (!fp) { perror("fopen"); exit(EXIT_FAILURE); }
+    if (!fp) {
+        perror("fopen");
+        exit(EXIT_FAILURE);
+    }
 
     char *line = NULL;
     size_t len = 0;
@@ -52,14 +59,12 @@ int main() {
 
         sem_wait(&shm->sem_res_empty);
         shm->result = sum;
-        shm->done = 0;
         sem_post(&shm->sem_res_full);
     }
 
     free(line);
     fclose(fp);
 
-    // сигнал конца передачи
     sem_wait(&shm->sem_res_empty);
     shm->done = 1;
     sem_post(&shm->sem_res_full);
