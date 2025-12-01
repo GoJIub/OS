@@ -25,7 +25,7 @@ int main() {
 
     int fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
     if (fd == -1) {
-        error("shm_open");
+        perror("shm_open");
         exit(EXIT_FAILURE);
     }
     ftruncate(fd, sizeof(struct shmseg));
