@@ -8,22 +8,36 @@ typedef float (*pi_func_t)(int);
 typedef char* (*trans_func_t)(long);
 
 void* load_lib(const char* path, pi_func_t* pi_f, trans_func_t* tr_f) {
+    if (!path || !pi_f || !tr_f) {
+        fprintf(stderr, "load_lib: invalid argument (NULL)\n");
+        return NULL;
+    }
+
     dlerror();
     void* handle = dlopen(path, RTLD_LAZY);
     if (!handle) {
-        fprintf(stderr, "dlopen(%s) failed: %s\n", path, dlerror());
+        const char* err = dlerror();
+        fprintf(stderr, "dlopen(%s) failed: %s\n", path, err);
         return NULL;
     }
 
     dlerror();
     *pi_f = (pi_func_t)dlsym(handle, "Pi");
-    char* err = dlerror();
-    if (err) { fprintf(stderr, "dlsym(Pi) failed: %s\n", err); dlclose(handle); return NULL; }
+    const char* err = dlerror();
+    if (err != NULL) {
+        fprintf(stderr, "dlsym(Pi) failed: %s\n", err);
+        dlclose(handle);
+        return NULL;
+    }
 
     dlerror();
     *tr_f = (trans_func_t)dlsym(handle, "translation");
     err = dlerror();
-    if (err) { fprintf(stderr, "dlsym(translation) failed: %s\n", err); dlclose(handle); return NULL; }
+    if (err != NULL) {
+        fprintf(stderr, "dlsym(translation) failed: %s\n", err);
+        dlclose(handle);
+        return NULL;
+    }
 
     return handle;
 }
@@ -44,7 +58,7 @@ int main() {
     const char* current = lib1;
 
     printf("prog2 (runtime) ready. Commands:\n");
-    printf("0              -> switch implementation (toggle)\n");
+    printf("0              -> switch implementation\n");
     printf("1 K            -> compute Pi(K)\n");
     printf("2 x            -> translation(x)\n");
     printf("q              -> quit\n");
@@ -54,6 +68,7 @@ int main() {
 
     while (1) {
         printf("[%s] > ", current);
+
         ssize_t nread = getline(&line, &len, stdin);
         if (nread == -1) break;
         if (nread > 0 && line[nread - 1] == '\n') line[nread - 1] = '\0';

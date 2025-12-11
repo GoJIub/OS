@@ -18,12 +18,8 @@ int main() {
 
         ssize_t nread = getline(&line, &len, stdin);
         if (nread == -1) break;
-
-        if (nread > 0 && line[nread - 1] == '\n')
-            line[nread - 1] = '\0';
-
+        if (nread > 0 && line[nread - 1] == '\n') line[nread - 1] = '\0';
         if (line[0] == '\0') continue;
-
         if (line[0] == 'q') break;
 
         char *tok = strtok(line, " \t");
