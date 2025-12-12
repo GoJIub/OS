@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -245,7 +246,23 @@ int main(void) {
         if (!fgets(line, sizeof(line), stdin)) {
             break;
         }
-        int choice = atoi(line);
+
+        int choice = 0;
+
+        // --- Проверка: есть ли буквы в строке ---
+        int has_letter = 0;
+        for (int i = 0; line[i] != '\0'; i++) {
+            if (isalpha((unsigned char)line[i])) {
+                has_letter = 1;
+                break;
+            }
+        }
+
+        if (has_letter) {
+            choice = 11;   // спец-кейс, если введены буквы
+        } else {
+            choice = atoi(line);  // иначе обычный выбор
+        }
         Response resp;
         Request req;
         memset(&req, 0, sizeof(req));

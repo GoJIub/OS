@@ -1,0 +1,86 @@
+execve("./prog2", ["./prog2"], 0x7ffd1575da10 /* 26 vars */) = 0
+brk(NULL)                               = 0x5bbeb441c000
+arch_prctl(0x3001 /* ARCH_??? */, 0x7ffe98a04050) = -1 EINVAL (Invalid argument)
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7e1c45a10000
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=12380, ...}, AT_EMPTY_PATH) = 0
+mmap(NULL, 12380, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7e1c45a0c000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0P\237\2\0\0\0\0\0"..., 832) = 832
+pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+pread64(3, "\4\0\0\0 \0\0\0\5\0\0\0GNU\0\2\0\0\300\4\0\0\0\3\0\0\0\0\0\0\0"..., 48, 848) = 48
+pread64(3, "\4\0\0\0\24\0\0\0\3\0\0\0GNU\0O{\f\225\\=\201\327\312\301P\32$\230\266\235"..., 68, 896) = 68
+newfstatat(3, "", {st_mode=S_IFREG|0755, st_size=2220400, ...}, AT_EMPTY_PATH) = 0
+pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+mmap(NULL, 2264656, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7e1c457e3000
+mprotect(0x7e1c4580b000, 2023424, PROT_NONE) = 0
+mmap(0x7e1c4580b000, 1658880, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x28000) = 0x7e1c4580b000
+mmap(0x7e1c459a0000, 360448, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1bd000) = 0x7e1c459a0000
+mmap(0x7e1c459f9000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x215000) = 0x7e1c459f9000
+mmap(0x7e1c459ff000, 52816, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7e1c459ff000
+close(3)                                = 0
+mmap(NULL, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7e1c457e0000
+arch_prctl(ARCH_SET_FS, 0x7e1c457e0740) = 0
+set_tid_address(0x7e1c457e0a10)         = 24723
+set_robust_list(0x7e1c457e0a20, 24)     = 0
+rseq(0x7e1c457e10e0, 0x20, 0, 0x53053053) = 0
+mprotect(0x7e1c459f9000, 16384, PROT_READ) = 0
+mprotect(0x5bbe9cca9000, 4096, PROT_READ) = 0
+mprotect(0x7e1c45a4a000, 8192, PROT_READ) = 0
+prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=8192*1024, rlim_max=RLIM64_INFINITY}) = 0
+munmap(0x7e1c45a0c000, 12380)           = 0
+getrandom("\x93\xfc\x4d\xe6\x98\x90\x99\x3c", 8, GRND_NONBLOCK) = 8
+brk(NULL)                               = 0x5bbeb441c000
+brk(0x5bbeb443d000)                     = 0x5bbeb443d000
+openat(AT_FDCWD, "libs/libmath_dl1.so", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0"..., 832) = 832
+newfstatat(3, "", {st_mode=S_IFREG|0755, st_size=15704, ...}, AT_EMPTY_PATH) = 0
+getcwd("/work/Lab4", 128)               = 11
+mmap(NULL, 16448, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7e1c457db000
+mmap(0x7e1c457dc000, 4096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1000) = 0x7e1c457dc000
+mmap(0x7e1c457dd000, 4096, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7e1c457dd000
+mmap(0x7e1c457de000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7e1c457de000
+close(3)                                = 0
+mprotect(0x7e1c457de000, 4096, PROT_READ) = 0
+newfstatat(1, "", {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88, 0x1), ...}, AT_EMPTY_PATH) = 0
+write(1, "prog2 (runtime) ready. Commands:"..., 33) = 33
+write(1, "0              -> switch impleme"..., 40) = 40
+write(1, "1 K            -> compute Pi(K)\n", 32) = 32
+write(1, "2 x            -> translation(x)"..., 33) = 33
+write(1, "q              -> quit\n", 23) = 23
+newfstatat(0, "", {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88, 0x1), ...}, AT_EMPTY_PATH) = 0
+write(1, "[libs/libmath_dl1.so] > ", 24) = 24
+read(0, "0\n", 1024)                    = 2
+munmap(0x7e1c457db000, 16448)           = 0
+openat(AT_FDCWD, "libs/libmath_dl2.so", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0"..., 832) = 832
+newfstatat(3, "", {st_mode=S_IFREG|0755, st_size=15704, ...}, AT_EMPTY_PATH) = 0
+getcwd("/work/Lab4", 128)               = 11
+mmap(NULL, 16448, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7e1c457db000
+mmap(0x7e1c457dc000, 4096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1000) = 0x7e1c457dc000
+mmap(0x7e1c457dd000, 4096, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7e1c457dd000
+mmap(0x7e1c457de000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7e1c457de000
+close(3)                                = 0
+mprotect(0x7e1c457de000, 4096, PROT_READ) = 0
+write(1, "Switched to libs/libmath_dl2.so\n", 32) = 32
+write(1, "[libs/libmath_dl2.so] > ", 24) = 24
+read(0, "0\n", 1024)                    = 2
+munmap(0x7e1c457db000, 16448)           = 0
+openat(AT_FDCWD, "libs/libmath_dl1.so", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0"..., 832) = 832
+newfstatat(3, "", {st_mode=S_IFREG|0755, st_size=15704, ...}, AT_EMPTY_PATH) = 0
+getcwd("/work/Lab4", 128)               = 11
+mmap(NULL, 16448, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7e1c457db000
+mmap(0x7e1c457dc000, 4096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1000) = 0x7e1c457dc000
+mmap(0x7e1c457dd000, 4096, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7e1c457dd000
+mmap(0x7e1c457de000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7e1c457de000
+close(3)                                = 0
+mprotect(0x7e1c457de000, 4096, PROT_READ) = 0
+write(1, "Switched to libs/libmath_dl1.so\n", 32) = 32
+write(1, "[libs/libmath_dl1.so] > ", 24) = 24
+read(0, "q\n", 1024)                    = 2
+munmap(0x7e1c457db000, 16448)           = 0
+exit_group(0)                           = ?
++++ exited with 0 +++

@@ -1,0 +1,372 @@
+dev@0632b1d37f75:/work/Lab4$ readelf -d libs/libmath_dl1.so
+
+Dynamic section at offset 0x2e20 contains 24 entries:
+  Tag        Type                         Name/Value
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+ 0x000000000000000c (INIT)               0x1000
+ 0x000000000000000d (FINI)               0x133c
+ 0x0000000000000019 (INIT_ARRAY)         0x3e10
+ 0x000000000000001b (INIT_ARRAYSZ)       8 (bytes)
+ 0x000000000000001a (FINI_ARRAY)         0x3e18
+ 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)
+ 0x000000006ffffef5 (GNU_HASH)           0x2f0
+ 0x0000000000000005 (STRTAB)             0x408
+ 0x0000000000000006 (SYMTAB)             0x318
+ 0x000000000000000a (STRSZ)              141 (bytes)
+ 0x000000000000000b (SYMENT)             24 (bytes)
+ 0x0000000000000003 (PLTGOT)             0x4000
+ 0x0000000000000002 (PLTRELSZ)           72 (bytes)
+ 0x0000000000000014 (PLTREL)             RELA
+ 0x0000000000000017 (JMPREL)             0x578
+ 0x0000000000000007 (RELA)               0x4d0
+ 0x0000000000000008 (RELASZ)             168 (bytes)
+ 0x0000000000000009 (RELAENT)            24 (bytes)
+ 0x000000006ffffffe (VERNEED)            0x4b0
+ 0x000000006fffffff (VERNEEDNUM)         1
+ 0x000000006ffffff0 (VERSYM)             0x496
+ 0x000000006ffffff9 (RELACOUNT)          3
+ 0x0000000000000000 (NULL)               0x0
+dev@0632b1d37f75:/work/Lab4$ readelf -s libs/libmath_dl1.so | grep Pi
+     8: 0000000000001159   137 FUNC    GLOBAL DEFAULT   14 Pi
+    23: 0000000000001159   137 FUNC    GLOBAL DEFAULT   14 Pi
+dev@0632b1d37f75:/work/Lab4$ objdump -d libs/libmath_dl1.so
+
+libs/libmath_dl1.so:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+0000000000001000 <_init>:
+    1000:       f3 0f 1e fa             endbr64 
+    1004:       48 83 ec 08             sub    $0x8,%rsp
+    1008:       48 8b 05 d9 2f 00 00    mov    0x2fd9(%rip),%rax        # 3fe8 <__gmon_start__@Base>
+    100f:       48 85 c0                test   %rax,%rax
+    1012:       74 02                   je     1016 <_init+0x16>
+    1014:       ff d0                   call   *%rax
+    1016:       48 83 c4 08             add    $0x8,%rsp
+    101a:       c3                      ret    
+
+Disassembly of section .plt:
+
+0000000000001020 <.plt>:
+    1020:       ff 35 e2 2f 00 00       push   0x2fe2(%rip)        # 4008 <_GLOBAL_OFFSET_TABLE_+0x8>
+    1026:       f2 ff 25 e3 2f 00 00    bnd jmp *0x2fe3(%rip)        # 4010 <_GLOBAL_OFFSET_TABLE_+0x10>
+    102d:       0f 1f 00                nopl   (%rax)
+    1030:       f3 0f 1e fa             endbr64 
+    1034:       68 00 00 00 00          push   $0x0
+    1039:       f2 e9 e1 ff ff ff       bnd jmp 1020 <_init+0x20>
+    103f:       90                      nop
+    1040:       f3 0f 1e fa             endbr64 
+    1044:       68 01 00 00 00          push   $0x1
+    1049:       f2 e9 d1 ff ff ff       bnd jmp 1020 <_init+0x20>
+    104f:       90                      nop
+    1050:       f3 0f 1e fa             endbr64 
+    1054:       68 02 00 00 00          push   $0x2
+    1059:       f2 e9 c1 ff ff ff       bnd jmp 1020 <_init+0x20>
+    105f:       90                      nop
+
+Disassembly of section .plt.got:
+
+0000000000001060 <__cxa_finalize@plt>:
+    1060:       f3 0f 1e fa             endbr64 
+    1064:       f2 ff 25 8d 2f 00 00    bnd jmp *0x2f8d(%rip)        # 3ff8 <__cxa_finalize@GLIBC_2.2.5>
+    106b:       0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+
+Disassembly of section .plt.sec:
+
+0000000000001070 <malloc@plt>:
+    1070:       f3 0f 1e fa             endbr64 
+    1074:       f2 ff 25 9d 2f 00 00    bnd jmp *0x2f9d(%rip)        # 4018 <malloc@GLIBC_2.2.5>
+    107b:       0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+
+0000000000001080 <perror@plt>:
+    1080:       f3 0f 1e fa             endbr64 
+    1084:       f2 ff 25 95 2f 00 00    bnd jmp *0x2f95(%rip)        # 4020 <perror@GLIBC_2.2.5>
+    108b:       0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+
+0000000000001090 <exit@plt>:
+    1090:       f3 0f 1e fa             endbr64 
+    1094:       f2 ff 25 8d 2f 00 00    bnd jmp *0x2f8d(%rip)        # 4028 <exit@GLIBC_2.2.5>
+    109b:       0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+
+Disassembly of section .text:
+
+00000000000010a0 <deregister_tm_clones>:
+    10a0:       48 8d 3d 91 2f 00 00    lea    0x2f91(%rip),%rdi        # 4038 <completed.0>
+    10a7:       48 8d 05 8a 2f 00 00    lea    0x2f8a(%rip),%rax        # 4038 <completed.0>
+    10ae:       48 39 f8                cmp    %rdi,%rax
+    10b1:       74 15                   je     10c8 <deregister_tm_clones+0x28>
+    10b3:       48 8b 05 26 2f 00 00    mov    0x2f26(%rip),%rax        # 3fe0 <_ITM_deregisterTMCloneTable@Base>
+    10ba:       48 85 c0                test   %rax,%rax
+    10bd:       74 09                   je     10c8 <deregister_tm_clones+0x28>
+    10bf:       ff e0                   jmp    *%rax
+    10c1:       0f 1f 80 00 00 00 00    nopl   0x0(%rax)
+    10c8:       c3                      ret    
+    10c9:       0f 1f 80 00 00 00 00    nopl   0x0(%rax)
+
+00000000000010d0 <register_tm_clones>:
+    10d0:       48 8d 3d 61 2f 00 00    lea    0x2f61(%rip),%rdi        # 4038 <completed.0>
+    10d7:       48 8d 35 5a 2f 00 00    lea    0x2f5a(%rip),%rsi        # 4038 <completed.0>
+    10de:       48 29 fe                sub    %rdi,%rsi
+    10e1:       48 89 f0                mov    %rsi,%rax
+    10e4:       48 c1 ee 3f             shr    $0x3f,%rsi
+    10e8:       48 c1 f8 03             sar    $0x3,%rax
+    10ec:       48 01 c6                add    %rax,%rsi
+    10ef:       48 d1 fe                sar    %rsi
+    10f2:       74 14                   je     1108 <register_tm_clones+0x38>
+    10f4:       48 8b 05 f5 2e 00 00    mov    0x2ef5(%rip),%rax        # 3ff0 <_ITM_registerTMCloneTable@Base>
+    10fb:       48 85 c0                test   %rax,%rax
+    10fe:       74 08                   je     1108 <register_tm_clones+0x38>
+    1100:       ff e0                   jmp    *%rax
+    1102:       66 0f 1f 44 00 00       nopw   0x0(%rax,%rax,1)
+    1108:       c3                      ret    
+    1109:       0f 1f 80 00 00 00 00    nopl   0x0(%rax)
+
+0000000000001110 <__do_global_dtors_aux>:
+    1110:       f3 0f 1e fa             endbr64 
+    1114:       80 3d 1d 2f 00 00 00    cmpb   $0x0,0x2f1d(%rip)        # 4038 <completed.0>
+    111b:       75 2b                   jne    1148 <__do_global_dtors_aux+0x38>
+    111d:       55                      push   %rbp
+    111e:       48 83 3d d2 2e 00 00    cmpq   $0x0,0x2ed2(%rip)        # 3ff8 <__cxa_finalize@GLIBC_2.2.5>
+    1125:       00 
+    1126:       48 89 e5                mov    %rsp,%rbp
+    1129:       74 0c                   je     1137 <__do_global_dtors_aux+0x27>
+    112b:       48 8b 3d fe 2e 00 00    mov    0x2efe(%rip),%rdi        # 4030 <__dso_handle>
+    1132:       e8 29 ff ff ff          call   1060 <__cxa_finalize@plt>
+    1137:       e8 64 ff ff ff          call   10a0 <deregister_tm_clones>
+    113c:       c6 05 f5 2e 00 00 01    movb   $0x1,0x2ef5(%rip)        # 4038 <completed.0>
+    1143:       5d                      pop    %rbp
+    1144:       c3                      ret    
+    1145:       0f 1f 00                nopl   (%rax)
+    1148:       c3                      ret    
+    1149:       0f 1f 80 00 00 00 00    nopl   0x0(%rax)
+
+0000000000001150 <frame_dummy>:
+    1150:       f3 0f 1e fa             endbr64 
+    1154:       e9 77 ff ff ff          jmp    10d0 <register_tm_clones>
+
+0000000000001159 <Pi>:
+    1159:       f3 0f 1e fa             endbr64 
+    115d:       55                      push   %rbp
+    115e:       48 89 e5                mov    %rsp,%rbp
+    1161:       89 7d ec                mov    %edi,-0x14(%rbp)
+    1164:       66 0f ef c0             pxor   %xmm0,%xmm0
+    1168:       f3 0f 11 45 f8          movss  %xmm0,-0x8(%rbp)
+    116d:       c7 45 fc 00 00 00 00    movl   $0x0,-0x4(%rbp)
+    1174:       eb 51                   jmp    11c7 <Pi+0x6e>
+    1176:       8b 45 fc                mov    -0x4(%rbp),%eax
+    1179:       01 c0                   add    %eax,%eax
+    117b:       83 c0 01                add    $0x1,%eax
+    117e:       66 0f ef d2             pxor   %xmm2,%xmm2
+    1182:       f3 0f 2a d0             cvtsi2ss %eax,%xmm2
+    1186:       f3 0f 10 05 7a 0e 00    movss  0xe7a(%rip),%xmm0        # 2008 <_fini+0xccc>
+    118d:       00 
+    118e:       0f 28 c8                movaps %xmm0,%xmm1
+    1191:       f3 0f 5e ca             divss  %xmm2,%xmm1
+    1195:       8b 45 fc                mov    -0x4(%rbp),%eax
+    1198:       83 e0 01                and    $0x1,%eax
+    119b:       85 c0                   test   %eax,%eax
+    119d:       74 0a                   je     11a9 <Pi+0x50>
+    119f:       f3 0f 10 05 65 0e 00    movss  0xe65(%rip),%xmm0        # 200c <_fini+0xcd0>
+    11a6:       00 
+    11a7:       eb 08                   jmp    11b1 <Pi+0x58>
+    11a9:       f3 0f 10 05 57 0e 00    movss  0xe57(%rip),%xmm0        # 2008 <_fini+0xccc>
+    11b0:       00 
+    11b1:       f3 0f 59 c1             mulss  %xmm1,%xmm0
+    11b5:       f3 0f 10 4d f8          movss  -0x8(%rbp),%xmm1
+    11ba:       f3 0f 58 c1             addss  %xmm1,%xmm0
+    11be:       f3 0f 11 45 f8          movss  %xmm0,-0x8(%rbp)
+    11c3:       83 45 fc 01             addl   $0x1,-0x4(%rbp)
+    11c7:       8b 45 fc                mov    -0x4(%rbp),%eax
+    11ca:       3b 45 ec                cmp    -0x14(%rbp),%eax
+    11cd:       7e a7                   jle    1176 <Pi+0x1d>
+    11cf:       f3 0f 10 4d f8          movss  -0x8(%rbp),%xmm1
+    11d4:       f3 0f 10 05 34 0e 00    movss  0xe34(%rip),%xmm0        # 2010 <_fini+0xcd4>
+    11db:       00 
+    11dc:       f3 0f 59 c1             mulss  %xmm1,%xmm0
+    11e0:       5d                      pop    %rbp
+    11e1:       c3                      ret    
+
+00000000000011e2 <translation>:
+    11e2:       f3 0f 1e fa             endbr64 
+    11e6:       55                      push   %rbp
+    11e7:       48 89 e5                mov    %rsp,%rbp
+    11ea:       48 83 ec 40             sub    $0x40,%rsp
+    11ee:       48 89 7d c8             mov    %rdi,-0x38(%rbp)
+    11f2:       48 83 7d c8 00          cmpq   $0x0,-0x38(%rbp)
+    11f7:       75 49                   jne    1242 <translation+0x60>
+    11f9:       bf 02 00 00 00          mov    $0x2,%edi
+    11fe:       e8 6d fe ff ff          call   1070 <malloc@plt>
+    1203:       48 89 45 f8             mov    %rax,-0x8(%rbp)
+    1207:       48 83 7d f8 00          cmpq   $0x0,-0x8(%rbp)
+    120c:       75 19                   jne    1227 <translation+0x45>
+    120e:       48 8d 05 eb 0d 00 00    lea    0xdeb(%rip),%rax        # 2000 <_fini+0xcc4>
+    1215:       48 89 c7                mov    %rax,%rdi
+    1218:       e8 63 fe ff ff          call   1080 <perror@plt>
+    121d:       bf 01 00 00 00          mov    $0x1,%edi
+    1222:       e8 69 fe ff ff          call   1090 <exit@plt>
+    1227:       48 8b 45 f8             mov    -0x8(%rbp),%rax
+    122b:       c6 00 30                movb   $0x30,(%rax)
+    122e:       48 8b 45 f8             mov    -0x8(%rbp),%rax
+    1232:       48 83 c0 01             add    $0x1,%rax
+    1236:       c6 00 00                movb   $0x0,(%rax)
+    1239:       48 8b 45 f8             mov    -0x8(%rbp),%rax
+    123d:       e9 f7 00 00 00          jmp    1339 <translation+0x157>
+    1242:       48 8b 45 c8             mov    -0x38(%rbp),%rax
+    1246:       48 c1 e8 3f             shr    $0x3f,%rax
+    124a:       0f b6 c0                movzbl %al,%eax
+    124d:       89 45 d8                mov    %eax,-0x28(%rbp)
+    1250:       83 7d d8 00             cmpl   $0x0,-0x28(%rbp)
+    1254:       74 09                   je     125f <translation+0x7d>
+    1256:       48 8b 45 c8             mov    -0x38(%rbp),%rax
+    125a:       48 f7 d8                neg    %rax
+    125d:       eb 04                   jmp    1263 <translation+0x81>
+    125f:       48 8b 45 c8             mov    -0x38(%rbp),%rax
+    1263:       48 89 45 e0             mov    %rax,-0x20(%rbp)
+    1267:       48 8b 45 e0             mov    -0x20(%rbp),%rax
+    126b:       48 89 45 e8             mov    %rax,-0x18(%rbp)
+    126f:       c7 45 d0 00 00 00 00    movl   $0x0,-0x30(%rbp)
+    1276:       eb 0f                   jmp    1287 <translation+0xa5>
+    1278:       83 45 d0 01             addl   $0x1,-0x30(%rbp)
+    127c:       48 8b 45 e8             mov    -0x18(%rbp),%rax
+    1280:       48 d1 e8                shr    %rax
+    1283:       48 89 45 e8             mov    %rax,-0x18(%rbp)
+    1287:       48 83 7d e8 00          cmpq   $0x0,-0x18(%rbp)
+    128c:       75 ea                   jne    1278 <translation+0x96>
+    128e:       83 7d d8 00             cmpl   $0x0,-0x28(%rbp)
+    1292:       0f 95 c0                setne  %al
+    1295:       0f b6 d0                movzbl %al,%edx
+    1298:       8b 45 d0                mov    -0x30(%rbp),%eax
+    129b:       01 d0                   add    %edx,%eax
+    129d:       89 45 dc                mov    %eax,-0x24(%rbp)
+    12a0:       8b 45 dc                mov    -0x24(%rbp),%eax
+    12a3:       83 c0 01                add    $0x1,%eax
+    12a6:       48 98                   cltq   
+    12a8:       48 89 c7                mov    %rax,%rdi
+    12ab:       e8 c0 fd ff ff          call   1070 <malloc@plt>
+    12b0:       48 89 45 f0             mov    %rax,-0x10(%rbp)
+    12b4:       48 83 7d f0 00          cmpq   $0x0,-0x10(%rbp)
+    12b9:       75 19                   jne    12d4 <translation+0xf2>
+    12bb:       48 8d 05 3e 0d 00 00    lea    0xd3e(%rip),%rax        # 2000 <_fini+0xcc4>
+    12c2:       48 89 c7                mov    %rax,%rdi
+    12c5:       e8 b6 fd ff ff          call   1080 <perror@plt>
+    12ca:       bf 01 00 00 00          mov    $0x1,%edi
+    12cf:       e8 bc fd ff ff          call   1090 <exit@plt>
+    12d4:       8b 45 dc                mov    -0x24(%rbp),%eax
+    12d7:       48 63 d0                movslq %eax,%rdx
+    12da:       48 8b 45 f0             mov    -0x10(%rbp),%rax
+    12de:       48 01 d0                add    %rdx,%rax
+    12e1:       c6 00 00                movb   $0x0,(%rax)
+    12e4:       8b 45 dc                mov    -0x24(%rbp),%eax
+    12e7:       83 e8 01                sub    $0x1,%eax
+    12ea:       89 45 d4                mov    %eax,-0x2c(%rbp)
+    12ed:       eb 2a                   jmp    1319 <translation+0x137>
+    12ef:       48 8b 45 e0             mov    -0x20(%rbp),%rax
+    12f3:       83 e0 01                and    $0x1,%eax
+    12f6:       8d 48 30                lea    0x30(%rax),%ecx
+    12f9:       8b 45 d4                mov    -0x2c(%rbp),%eax
+    12fc:       48 63 d0                movslq %eax,%rdx
+    12ff:       48 8b 45 f0             mov    -0x10(%rbp),%rax
+    1303:       48 01 d0                add    %rdx,%rax
+    1306:       89 ca                   mov    %ecx,%edx
+    1308:       88 10                   mov    %dl,(%rax)
+    130a:       48 8b 45 e0             mov    -0x20(%rbp),%rax
+    130e:       48 d1 e8                shr    %rax
+    1311:       48 89 45 e0             mov    %rax,-0x20(%rbp)
+    1315:       83 6d d4 01             subl   $0x1,-0x2c(%rbp)
+    1319:       83 7d d8 00             cmpl   $0x0,-0x28(%rbp)
+    131d:       0f 95 c0                setne  %al
+    1320:       0f b6 c0                movzbl %al,%eax
+    1323:       39 45 d4                cmp    %eax,-0x2c(%rbp)
+    1326:       7d c7                   jge    12ef <translation+0x10d>
+    1328:       83 7d d8 00             cmpl   $0x0,-0x28(%rbp)
+    132c:       74 07                   je     1335 <translation+0x153>
+    132e:       48 8b 45 f0             mov    -0x10(%rbp),%rax
+    1332:       c6 00 2d                movb   $0x2d,(%rax)
+    1335:       48 8b 45 f0             mov    -0x10(%rbp),%rax
+    1339:       c9                      leave  
+    133a:       c3                      ret    
+
+Disassembly of section .fini:
+
+000000000000133c <_fini>:
+    133c:       f3 0f 1e fa             endbr64 
+    1340:       48 83 ec 08             sub    $0x8,%rsp
+    1344:       48 83 c4 08             add    $0x8,%rsp
+    1348:       c3                      ret    
+dev@0632b1d37f75:/work/Lab4$ nm -D libs/libmath_dl1.so
+0000000000001159 T Pi
+                 w _ITM_deregisterTMCloneTable
+                 w _ITM_registerTMCloneTable
+                 w __cxa_finalize@GLIBC_2.2.5
+                 w __gmon_start__
+                 U exit@GLIBC_2.2.5
+                 U malloc@GLIBC_2.2.5
+                 U perror@GLIBC_2.2.5
+00000000000011e2 T translation
+dev@0632b1d37f75:/work/Lab4$ readelf -l libs/libmath_dl1.so
+
+Elf file type is DYN (Shared object file)
+Entry point 0x0
+There are 11 program headers, starting at offset 64
+
+Program Headers:
+  Type           Offset             VirtAddr           PhysAddr
+                 FileSiz            MemSiz              Flags  Align
+  LOAD           0x0000000000000000 0x0000000000000000 0x0000000000000000
+                 0x00000000000005c0 0x00000000000005c0  R      0x1000
+  LOAD           0x0000000000001000 0x0000000000001000 0x0000000000001000
+                 0x0000000000000349 0x0000000000000349  R E    0x1000
+  LOAD           0x0000000000002000 0x0000000000002000 0x0000000000002000
+                 0x00000000000000fc 0x00000000000000fc  R      0x1000
+  LOAD           0x0000000000002e10 0x0000000000003e10 0x0000000000003e10
+                 0x0000000000000228 0x0000000000000230  RW     0x1000
+  DYNAMIC        0x0000000000002e20 0x0000000000003e20 0x0000000000003e20
+                 0x00000000000001c0 0x00000000000001c0  RW     0x8
+  NOTE           0x00000000000002a8 0x00000000000002a8 0x00000000000002a8
+                 0x0000000000000020 0x0000000000000020  R      0x8
+  NOTE           0x00000000000002c8 0x00000000000002c8 0x00000000000002c8
+                 0x0000000000000024 0x0000000000000024  R      0x4
+  GNU_PROPERTY   0x00000000000002a8 0x00000000000002a8 0x00000000000002a8
+                 0x0000000000000020 0x0000000000000020  R      0x8
+  GNU_EH_FRAME   0x0000000000002014 0x0000000000002014 0x0000000000002014
+                 0x0000000000000034 0x0000000000000034  R      0x4
+  GNU_STACK      0x0000000000000000 0x0000000000000000 0x0000000000000000
+                 0x0000000000000000 0x0000000000000000  RW     0x10
+  GNU_RELRO      0x0000000000002e10 0x0000000000003e10 0x0000000000003e10
+                 0x00000000000001f0 0x00000000000001f0  R      0x1
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     .note.gnu.property .note.gnu.build-id .gnu.hash .dynsym .dynstr .gnu.version .gnu.version_r .rela.dyn .rela.plt 
+   01     .init .plt .plt.got .plt.sec .text .fini 
+   02     .rodata .eh_frame_hdr .eh_frame 
+   03     .init_array .fini_array .dynamic .got .got.plt .data .bss 
+   04     .dynamic 
+   05     .note.gnu.property 
+   06     .note.gnu.build-id 
+   07     .note.gnu.property 
+   08     .eh_frame_hdr 
+   09     
+   10     .init_array .fini_array .dynamic .got 
+dev@0632b1d37f75:/work/Lab4$ readelf -h libs/libmath_dl1.so
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Shared object file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x0
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          13784 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         11
+  Size of section headers:           64 (bytes)
+  Number of section headers:         30
+  Section header string table index: 29
