@@ -9,9 +9,9 @@
 #define SEM_SLOT_PREFIX "/bship_slot_v1_"
 #define SEM_RESP_PREFIX "/bship_resp_v1_"
 
-#define MAX_PLAYERS 8
-#define MAX_GAMES 8
-#define MAX_INVITES 16
+#define MAX_PLAYERS 10
+#define MAX_GAMES 10
+#define MAX_INVITES 20
 #define MAX_NAME 32
 #define BOARD_SIZE 8
 #define MAX_MESSAGE 256

@@ -7,6 +7,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "common.h"
 
@@ -234,10 +235,26 @@ static void handle_response(const Response *resp) {
     print_boards_if_available(resp);
 }
 
+static void handle_sigint(int sig) {
+    (void)sig;
+    if (my_slot >= 0) {
+        Request req;
+        Response resp;
+        memset(&req, 0, sizeof(req));
+        req.type = REQ_LOGOUT;
+        req.from_slot = my_slot;
+        send_request(&req, &resp);
+    }
+    close_ipc();
+    printf("\nКлиент завершён.\n");
+    exit(0);
+}
+
 int main(void) {
     if (attach_ipc() != 0) {
         return 1;
     }
+    signal(SIGINT, handle_sigint);
     login_flow();
     int running = 1;
     while (running) {

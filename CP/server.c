@@ -32,15 +32,11 @@ static void cleanup_ipc(void) {
     }
     for (int i = 0; i < MAX_PLAYERS; i++) {
         char name[64];
-        if (slot_sems[i]) {
-            sem_close(slot_sems[i]);
-        }
+        if (slot_sems[i]) sem_close(slot_sems[i]);
         build_sem_name(SEM_SLOT_PREFIX, i, name, sizeof(name));
         sem_unlink(name);
 
-        if (resp_sems[i]) {
-            sem_close(resp_sems[i]);
-        }
+        if (resp_sems[i]) sem_close(resp_sems[i]);
         build_sem_name(SEM_RESP_PREFIX, i, name, sizeof(name));
         sem_unlink(name);
     }
@@ -59,9 +55,7 @@ static void cleanup_ipc(void) {
 static void handle_signal(int sig) {
     (void)sig;
     running = 0;
-    if (request_sem) {
-        sem_post(request_sem);
-    }
+    if (request_sem) sem_post(request_sem);
 }
 
 static int setup_ipc(void) {
@@ -150,29 +144,36 @@ static void reset_game(Game *g) {
 static void cleanup_invites_for_player(int slot) {
     for (int i = 0; i < MAX_INVITES; i++) {
         Invite *inv = &state->invites[i];
-        if (inv->active && (inv->from_player == slot || inv->to_player == slot)) {
+        if (inv->active && (inv->from_player == slot || inv->to_player == slot))
             memset(inv, 0, sizeof(Invite));
-        }
     }
 }
 
 static void cleanup_invites_for_game(int game_id) {
     for (int i = 0; i < MAX_INVITES; i++) {
         Invite *inv = &state->invites[i];
-        if (inv->active && inv->game_id == game_id) {
+        if (inv->active && inv->game_id == game_id)
             memset(inv, 0, sizeof(Invite));
-        }
     }
 }
 
 static int seat_for_player(Game *g, int slot) {
-    if (g->players[0] == slot) {
-        return 0;
-    }
-    if (g->players[1] == slot) {
-        return 1;
-    }
+    if (g->players[0] == slot) return 0;
+    if (g->players[1] == slot) return 1;
     return -1;
+}
+
+static int is_adjacent(CellState board[BOARD_SIZE][BOARD_SIZE], int x, int y) {
+    for (int dy = -1; dy <= 1; dy++) {
+        for (int dx = -1; dx <= 1; dx++) {
+            int nx = x + dx;
+            int ny = y + dy;
+            if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
+                if (board[ny][nx] == CELL_SHIP) return 1;
+            }
+        }
+    }
+    return 0;
 }
 
 static void place_ships(CellState board[BOARD_SIZE][BOARD_SIZE], int *out_cells) {
@@ -191,7 +192,7 @@ static void place_ships(CellState board[BOARD_SIZE][BOARD_SIZE], int *out_cells)
                 }
                 int fits = 1;
                 for (int dx = 0; dx < len; dx++) {
-                    if (board[y][x + dx] != CELL_EMPTY) {
+                    if (board[y][x + dx] != CELL_EMPTY || is_adjacent(board, x + dx, y)) {
                         fits = 0;
                         break;
                     }
@@ -208,7 +209,7 @@ static void place_ships(CellState board[BOARD_SIZE][BOARD_SIZE], int *out_cells)
                 }
                 int fits = 1;
                 for (int dy = 0; dy < len; dy++) {
-                    if (board[y + dy][x] != CELL_EMPTY) {
+                    if (board[y + dy][x] != CELL_EMPTY || is_adjacent(board, x, y + dy)) {
                         fits = 0;
                         break;
                     }
@@ -280,6 +281,7 @@ static void handle_register(int slot, const Request *req, Response *resp) {
     strncpy(state->players[slot].login, req->text, MAX_NAME - 1);
     resp->code = 0;
     snprintf(resp->message, MAX_MESSAGE, "Welcome, %s! You are in slot %d.", req->text, slot);
+    printf("[REGISTER] [PLAYER slot=%d login=\"%s\"] connected.\n", slot, req->text);
 }
 
 static void handle_list_games(Response *resp) {
@@ -347,6 +349,8 @@ static void handle_create_game(int slot, const Request *req, Response *resp) {
     state->players[slot].game_id = game_idx;
     resp->code = 0;
     snprintf(resp->message, MAX_MESSAGE, "Игра '%s' создана. Ждите соперника.", g->name);
+    printf("[CREATE_GAME] [PLAYER slot=%d login=\"%s\"] created [GAME id=%d name=\"%s\"].\n",
+        slot, state->players[slot].login, game_idx, g->name);
 }
 
 static void handle_join_game(int slot, const Request *req, Response *resp) {
@@ -380,6 +384,8 @@ static void handle_join_game(int slot, const Request *req, Response *resp) {
     state->players[slot].game_id = game_idx;
     resp->code = 0;
     snprintf(resp->message, MAX_MESSAGE, "Вы присоединились к игре '%s'.", g->name);
+    printf("[JOIN_GAME] [PLAYER slot=%d login=\"%s\"] joined [GAME id=%d name=\"%s\"].\n",
+        slot, state->players[slot].login, game_idx, g->name);
 }
 
 static void handle_send_invite(int slot, const Request *req, Response *resp) {
@@ -423,6 +429,12 @@ static void handle_send_invite(int slot, const Request *req, Response *resp) {
             state->invites[i].game_id = state->players[slot].game_id;
             resp->code = 0;
             snprintf(resp->message, MAX_MESSAGE, "Приглашение отправлено игроку %s.", req->text);
+            printf("[INVITE] [PLAYER slot=%d login=\"%s\"] invited [PLAYER slot=%d login=\"%s\"] to [GAME id=%d].\n",
+                slot,
+                state->players[slot].login,
+                target,
+                state->players[target].login,
+                state->players[slot].game_id);
             return;
         }
     }
@@ -514,6 +526,8 @@ static void handle_accept_invite(int slot, const Request *req, Response *resp) {
     cleanup_invites_for_player(slot);
     resp->code = 0;
     snprintf(resp->message, MAX_MESSAGE, "Вы приняли приглашение в игру '%s'.", g->name);
+    printf("[ACCEPT_INVITE] [PLAYER slot=%d login=\"%s\"] joined [GAME id=%d name=\"%s\"].\n",
+        slot, state->players[slot].login, inv->game_id, g->name);
 }
 
 static void handle_game_status(int slot, Response *resp) {
@@ -559,7 +573,16 @@ static void handle_quit_game(int slot, Response *resp) {
     g->ready[seat] = 0;
     g->ships_left[seat] = 0;
     if (other_slot != -1 && g->winner_slot == -1) {
+        printf("[GAME_END] opponent left. Winner: [PLAYER slot=%d login=\"%s\"], [GAME id=%d name=\"%s\"] closed.\n",
+            other_slot,
+            state->players[other_slot].login,
+            game_idx,
+            g->name);
         g->winner_slot = other_slot;
+        state->players[other_slot].game_id = -1;
+        reset_game(g);
+        g->active = 0;
+        cleanup_invites_for_game(game_idx);
     }
     if (g->players[0] == -1 && g->players[1] == -1) {
         reset_game(g);
@@ -569,6 +592,8 @@ static void handle_quit_game(int slot, Response *resp) {
     state->players[slot].game_id = -1;
     resp->code = 0;
     snprintf(resp->message, MAX_MESSAGE, "Вы вышли из игры.");
+    printf("[QUIT_GAME] [PLAYER slot=%d login=\"%s\"] left [GAME id=%d].\n",
+        slot, state->players[slot].login, game_idx);
 }
 
 static void handle_fire(int slot, const Request *req, Response *resp) {
@@ -611,12 +636,38 @@ static void handle_fire(int slot, const Request *req, Response *resp) {
     }
     int enemy = seat ^ 1;
     CellState *cell = &g->boards[enemy][y][x];
-    if (*cell == CELL_MISS || *cell == CELL_HIT) {
-        resp->code = 1;
-        snprintf(resp->message, MAX_MESSAGE, "Уже стреляли сюда.");
-        fill_boards(g, seat, resp);
-        resp->your_turn = (g->turn == seat && g->winner_slot == -1);
-        return;
+    if (*cell == CELL_SHIP) {
+        *cell = CELL_HIT;
+        g->ships_left[enemy]--;
+
+        if (g->ships_left[enemy] <= 0) {
+            g->winner_slot = slot;
+
+            int game_id = state->players[slot].game_id;
+
+            int p0 = g->players[0];
+            int p1 = g->players[1];
+
+            printf("[GAME_END] Winner: [PLAYER slot=%d login=\"%s\"], game_id=%d name=\"%s\".\n",
+                slot, state->players[slot].login, game_id, g->name);
+
+            if (p0 != -1) state->players[p0].game_id = -1;
+            if (p1 != -1) state->players[p1].game_id = -1;
+
+            cleanup_invites_for_game(game_id);
+
+            reset_game(g);
+            g->active = 0;
+
+            resp->code = 0;
+            snprintf(resp->message, MAX_MESSAGE, "Вы победили! Все корабли противника уничтожены.");
+            resp->winner_slot = slot;
+            resp->your_turn = 0;
+            fill_boards(g, seat, resp);
+            return;
+        }
+
+        snprintf(resp->message, MAX_MESSAGE, "Попадание!");
     }
     if (*cell == CELL_SHIP) {
         *cell = CELL_HIT;
@@ -642,6 +693,8 @@ static void handle_logout(int slot, Response *resp) {
     reset_player_slot(slot);
     resp->code = 0;
     snprintf(resp->message, MAX_MESSAGE, "Вы вышли из системы.");
+    printf("[LOGOUT] [PLAYER slot=%d login=\"%s\"] disconnected.\n",
+        slot, state->players[slot].login);
 }
 
 static void process_request(int slot) {
@@ -698,7 +751,7 @@ static void process_request(int slot) {
 }
 
 static void server_loop(void) {
-    printf("Сервер запущен. Ожидаем запросы...\n");
+    printf("Server started. Waiting for requests...\n");
     while (running) {
         if (sem_wait(request_sem) == -1) {
             if (errno == EINTR) {
@@ -720,13 +773,13 @@ static void server_loop(void) {
             sem_post(slot_sems[i]);
         }
     }
-    printf("Сервер завершает работу.\n");
+    printf("Server shutting down.\n");
 }
 
 int main(void) {
     srand((unsigned int)time(NULL));
     if (setup_ipc() != 0) {
-        fprintf(stderr, "Не удалось инициализировать IPC.\n");
+        fprintf(stderr, "Error while initializing IPC.\n");
         return 1;
     }
     struct sigaction sa;
