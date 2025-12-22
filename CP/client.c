@@ -186,7 +186,6 @@ static void login_flow(void) {
             printf("Нет свободных слотов. Попробуйте позже.\n");
             exit(1);
         }
-        printf("Использую слот %d.\n", my_slot);
         prompt_line("Введите логин: ", my_login, sizeof(my_login));
         Request req;
         memset(&req, 0, sizeof(req));
@@ -198,7 +197,6 @@ static void login_flow(void) {
             break;
         }
         printf("Ошибка: %s\n", resp.message);
-        sleep(1);
     }
 }
 

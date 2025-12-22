@@ -4,13 +4,13 @@
 #include <semaphore.h>
 #include <stdint.h>
 
-#define SHM_NAME "/battleship_shm_v1"
-#define SEM_REQUEST_NAME "/bship_req_v1"
-#define SEM_SLOT_PREFIX "/bship_slot_v1_"
-#define SEM_RESP_PREFIX "/bship_resp_v1_"
+#define SHM_NAME "/battleship_shm"
+#define SEM_REQUEST_NAME "/bship_req"
+#define SEM_SLOT_PREFIX "/bship_slot_"
+#define SEM_RESP_PREFIX "/bship_resp_"
 
 #define MAX_PLAYERS 10
-#define MAX_GAMES 10
+#define MAX_GAMES 20
 #define MAX_INVITES 20
 #define MAX_NAME 32
 #define BOARD_SIZE 8
@@ -42,14 +42,13 @@ typedef enum {
 typedef struct {
     RequestType type;
     int from_slot;
-    int target_slot;
     int arg1;
     int arg2;
     char text[MAX_NAME];
 } Request;
 
 typedef struct {
-    int code;               // 0 success, 1 error, 2 info/update
+    int code;
     char message[MAX_MESSAGE];
     int game_id;
     int your_turn;

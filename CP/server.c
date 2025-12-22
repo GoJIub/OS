@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "common.h"
 
@@ -280,7 +281,7 @@ static void handle_register(int slot, const Request *req, Response *resp) {
     state->players[slot].active = 1;
     strncpy(state->players[slot].login, req->text, MAX_NAME - 1);
     resp->code = 0;
-    snprintf(resp->message, MAX_MESSAGE, "Welcome, %s! You are in slot %d.", req->text, slot);
+    snprintf(resp->message, MAX_MESSAGE, "Добро пожаловать, %s!", req->text);
     printf("[REGISTER] [PLAYER slot=%d login=\"%s\"] connected.\n", slot, req->text);
 }
 
@@ -668,19 +669,11 @@ static void handle_fire(int slot, const Request *req, Response *resp) {
         }
 
         snprintf(resp->message, MAX_MESSAGE, "Попадание!");
-    }
-    if (*cell == CELL_SHIP) {
-        *cell = CELL_HIT;
-        g->ships_left[enemy]--;
-        if (g->ships_left[enemy] <= 0) {
-            g->winner_slot = slot;
-        }
-        snprintf(resp->message, MAX_MESSAGE, "Попадание!");
     } else {
         *cell = CELL_MISS;
+        g->turn ^= 1;
         snprintf(resp->message, MAX_MESSAGE, "Мимо.");
     }
-    g->turn ^= 1; // смена хода
     resp->code = 0;
     resp->winner_slot = g->winner_slot;
     resp->your_turn = (g->turn == seat && g->winner_slot == -1);
@@ -688,13 +681,15 @@ static void handle_fire(int slot, const Request *req, Response *resp) {
 }
 
 static void handle_logout(int slot, Response *resp) {
+    char saved_login[MAX_NAME];
+    strcpy(saved_login, state->players[slot].login);
     handle_quit_game(slot, resp);
     cleanup_invites_for_player(slot);
     reset_player_slot(slot);
     resp->code = 0;
     snprintf(resp->message, MAX_MESSAGE, "Вы вышли из системы.");
     printf("[LOGOUT] [PLAYER slot=%d login=\"%s\"] disconnected.\n",
-        slot, state->players[slot].login);
+        slot, saved_login);
 }
 
 static void process_request(int slot) {
