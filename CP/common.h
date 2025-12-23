@@ -74,11 +74,11 @@ typedef struct {
 typedef struct {
     int active;
     char name[MAX_NAME];
-    int players[2]; // slots of players, -1 if empty
-    int turn;       // 0 or 1 index into players
+    int players[2];
+    int turn;
     int ready[2];
     int ships_left[2];
-    int winner_slot; // -1 if none
+    int winner_slot;
     CellState boards[2][BOARD_SIZE][BOARD_SIZE];
 } Game;
 
@@ -91,4 +91,4 @@ typedef struct {
     int request_ready[MAX_PLAYERS];
 } SharedState;
 
-#endif // BATTLESHIP_COMMON_H
+#endif

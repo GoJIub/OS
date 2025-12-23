@@ -12,21 +12,21 @@
 
 #include "common.h"
 
-static const int SHIPS[] = {4, 3, 3, 2, 2};
-static const int SHIP_COUNT = 5;
+const int SHIPS[] = {4, 3, 3, 2, 2};
+const int SHIP_COUNT = 5;
 
-static SharedState *state = NULL;
-static int shm_fd = -1;
-static sem_t *request_sem = NULL;
-static sem_t *slot_sems[MAX_PLAYERS];
-static sem_t *resp_sems[MAX_PLAYERS];
-static volatile sig_atomic_t running = 1;
+SharedState *state = NULL;
+int shm_fd = -1;
+sem_t *request_sem = NULL;
+sem_t *slot_sems[MAX_PLAYERS];
+sem_t *resp_sems[MAX_PLAYERS];
+volatile sig_atomic_t running = 1;
 
-static void build_sem_name(const char *prefix, int idx, char *out, size_t len) {
+void build_sem_name(const char *prefix, int idx, char *out, size_t len) {
     snprintf(out, len, "%s%d", prefix, idx);
 }
 
-static void cleanup_ipc(void) {
+void cleanup_ipc() {
     if (request_sem) {
         sem_close(request_sem);
         sem_unlink(SEM_REQUEST_NAME);
@@ -53,13 +53,13 @@ static void cleanup_ipc(void) {
     }
 }
 
-static void handle_signal(int sig) {
+void handle_signal(int sig) {
     (void)sig;
     running = 0;
     if (request_sem) sem_post(request_sem);
 }
 
-static int setup_ipc(void) {
+int setup_ipc() {
     shm_unlink(SHM_NAME);
     shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
     if (shm_fd < 0) {
@@ -103,7 +103,7 @@ static int setup_ipc(void) {
     return 0;
 }
 
-static int find_player_by_login(const char *login) {
+int find_player_by_login(const char *login) {
     for (int i = 0; i < MAX_PLAYERS; i++) {
         if (state->players[i].active && strncmp(state->players[i].login, login, MAX_NAME) == 0) {
             return i;
@@ -112,7 +112,7 @@ static int find_player_by_login(const char *login) {
     return -1;
 }
 
-static int find_game_by_name(const char *name) {
+int find_game_by_name(const char *name) {
     for (int i = 0; i < MAX_GAMES; i++) {
         if (state->games[i].active && strncmp(state->games[i].name, name, MAX_NAME) == 0) {
             return i;
@@ -121,7 +121,7 @@ static int find_game_by_name(const char *name) {
     return -1;
 }
 
-static int next_free_game(void) {
+int next_free_game() {
     for (int i = 0; i < MAX_GAMES; i++) {
         if (!state->games[i].active) {
             return i;
@@ -130,19 +130,19 @@ static int next_free_game(void) {
     return -1;
 }
 
-static void reset_player_slot(int slot) {
+void reset_player_slot(int slot) {
     memset(&state->players[slot], 0, sizeof(Player));
     state->players[slot].game_id = -1;
 }
 
-static void reset_game(Game *g) {
+void reset_game(Game *g) {
     memset(g, 0, sizeof(Game));
     g->players[0] = g->players[1] = -1;
     g->turn = 0;
     g->winner_slot = -1;
 }
 
-static void cleanup_invites_for_player(int slot) {
+void cleanup_invites_for_player(int slot) {
     for (int i = 0; i < MAX_INVITES; i++) {
         Invite *inv = &state->invites[i];
         if (inv->active && (inv->from_player == slot || inv->to_player == slot))
@@ -150,7 +150,7 @@ static void cleanup_invites_for_player(int slot) {
     }
 }
 
-static void cleanup_invites_for_game(int game_id) {
+void cleanup_invites_for_game(int game_id) {
     for (int i = 0; i < MAX_INVITES; i++) {
         Invite *inv = &state->invites[i];
         if (inv->active && inv->game_id == game_id)
@@ -158,13 +158,13 @@ static void cleanup_invites_for_game(int game_id) {
     }
 }
 
-static int seat_for_player(Game *g, int slot) {
+int seat_for_player(Game *g, int slot) {
     if (g->players[0] == slot) return 0;
     if (g->players[1] == slot) return 1;
     return -1;
 }
 
-static int is_adjacent(CellState board[BOARD_SIZE][BOARD_SIZE], int x, int y) {
+int is_adjacent(CellState board[BOARD_SIZE][BOARD_SIZE], int x, int y) {
     for (int dy = -1; dy <= 1; dy++) {
         for (int dx = -1; dx <= 1; dx++) {
             int nx = x + dx;
@@ -177,7 +177,7 @@ static int is_adjacent(CellState board[BOARD_SIZE][BOARD_SIZE], int x, int y) {
     return 0;
 }
 
-static void place_ships(CellState board[BOARD_SIZE][BOARD_SIZE], int *out_cells) {
+void place_ships(CellState board[BOARD_SIZE][BOARD_SIZE], int *out_cells) {
     memset(board, 0, sizeof(CellState) * BOARD_SIZE * BOARD_SIZE);
     int total_cells = 0;
     for (int s = 0; s < SHIP_COUNT; s++) {
@@ -226,7 +226,6 @@ static void place_ships(CellState board[BOARD_SIZE][BOARD_SIZE], int *out_cells)
             total_cells += len;
         }
         if (!placed) {
-            // If placement failed, clear and restart for stability.
             s = -1;
             memset(board, 0, sizeof(CellState) * BOARD_SIZE * BOARD_SIZE);
             total_cells = 0;
@@ -237,7 +236,7 @@ static void place_ships(CellState board[BOARD_SIZE][BOARD_SIZE], int *out_cells)
     }
 }
 
-static void copy_enemy_view(Game *g, int seat, CellState dest[BOARD_SIZE][BOARD_SIZE]) {
+void copy_enemy_view(Game *g, int seat, CellState dest[BOARD_SIZE][BOARD_SIZE]) {
     int enemy = seat ^ 1;
     for (int y = 0; y < BOARD_SIZE; y++) {
         for (int x = 0; x < BOARD_SIZE; x++) {
@@ -251,7 +250,7 @@ static void copy_enemy_view(Game *g, int seat, CellState dest[BOARD_SIZE][BOARD_
     }
 }
 
-static void fill_boards(Game *g, int seat, Response *resp) {
+void fill_boards(Game *g, int seat, Response *resp) {
     resp->has_boards = 1;
     for (int y = 0; y < BOARD_SIZE; y++) {
         for (int x = 0; x < BOARD_SIZE; x++) {
@@ -261,7 +260,7 @@ static void fill_boards(Game *g, int seat, Response *resp) {
     copy_enemy_view(g, seat, resp->enemy_board);
 }
 
-static void handle_register(int slot, const Request *req, Response *resp) {
+void handle_register(int slot, const Request *req, Response *resp) {
     if (state->players[slot].active) {
         resp->code = 1;
         snprintf(resp->message, MAX_MESSAGE, "Slot %d already in use.", slot);
@@ -285,7 +284,7 @@ static void handle_register(int slot, const Request *req, Response *resp) {
     printf("[REGISTER] [PLAYER slot=%d login=\"%s\"] connected.\n", slot, req->text);
 }
 
-static void handle_list_games(Response *resp) {
+void handle_list_games(Response *resp) {
     resp->code = 0;
     char buffer[MAX_MESSAGE];
     buffer[0] = '\0';
@@ -309,7 +308,7 @@ static void handle_list_games(Response *resp) {
     }
 }
 
-static void handle_create_game(int slot, const Request *req, Response *resp) {
+void handle_create_game(int slot, const Request *req, Response *resp) {
     if (!state->players[slot].active) {
         resp->code = 1;
         snprintf(resp->message, MAX_MESSAGE, "Сначала войдите.");
@@ -354,7 +353,7 @@ static void handle_create_game(int slot, const Request *req, Response *resp) {
         slot, state->players[slot].login, game_idx, g->name);
 }
 
-static void handle_join_game(int slot, const Request *req, Response *resp) {
+void handle_join_game(int slot, const Request *req, Response *resp) {
     if (!state->players[slot].active) {
         resp->code = 1;
         snprintf(resp->message, MAX_MESSAGE, "Сначала войдите.");
@@ -389,7 +388,7 @@ static void handle_join_game(int slot, const Request *req, Response *resp) {
         slot, state->players[slot].login, game_idx, g->name);
 }
 
-static void handle_send_invite(int slot, const Request *req, Response *resp) {
+void handle_send_invite(int slot, const Request *req, Response *resp) {
     if (state->players[slot].game_id < 0) {
         resp->code = 1;
         snprintf(resp->message, MAX_MESSAGE, "Создайте или войдите в игру перед приглашением.");
@@ -443,7 +442,7 @@ static void handle_send_invite(int slot, const Request *req, Response *resp) {
     snprintf(resp->message, MAX_MESSAGE, "Нет места для нового приглашения.");
 }
 
-static void handle_list_invites(int slot, Response *resp) {
+void handle_list_invites(int slot, Response *resp) {
     char buffer[MAX_MESSAGE];
     buffer[0] = '\0';
     for (int i = 0; i < MAX_INVITES; i++) {
@@ -466,7 +465,7 @@ static void handle_list_invites(int slot, Response *resp) {
     }
 }
 
-static void handle_decline_invite(int slot, const Request *req, Response *resp) {
+void handle_decline_invite(int slot, const Request *req, Response *resp) {
     int removed = 0;
     for (int i = 0; i < MAX_INVITES; i++) {
         Invite *inv = &state->invites[i];
@@ -487,7 +486,7 @@ static void handle_decline_invite(int slot, const Request *req, Response *resp) 
     }
 }
 
-static void handle_accept_invite(int slot, const Request *req, Response *resp) {
+void handle_accept_invite(int slot, const Request *req, Response *resp) {
     if (state->players[slot].game_id != -1) {
         resp->code = 1;
         snprintf(resp->message, MAX_MESSAGE, "Вы уже в игре.");
@@ -531,7 +530,7 @@ static void handle_accept_invite(int slot, const Request *req, Response *resp) {
         slot, state->players[slot].login, inv->game_id, g->name);
 }
 
-static void handle_game_status(int slot, Response *resp) {
+void handle_game_status(int slot, Response *resp) {
     int game_idx = state->players[slot].game_id;
     if (game_idx < 0) {
         resp->code = 1;
@@ -554,7 +553,7 @@ static void handle_game_status(int slot, Response *resp) {
              resp->winner_slot == -1 ? "Игра продолжается." : "Игра завершена.");
 }
 
-static void handle_quit_game(int slot, Response *resp) {
+void handle_quit_game(int slot, Response *resp) {
     int game_idx = state->players[slot].game_id;
     if (game_idx < 0) {
         resp->code = 1;
@@ -597,7 +596,7 @@ static void handle_quit_game(int slot, Response *resp) {
         slot, state->players[slot].login, game_idx);
 }
 
-static void handle_fire(int slot, const Request *req, Response *resp) {
+void handle_fire(int slot, const Request *req, Response *resp) {
     int game_idx = state->players[slot].game_id;
     if (game_idx < 0) {
         resp->code = 1;
@@ -680,7 +679,7 @@ static void handle_fire(int slot, const Request *req, Response *resp) {
     fill_boards(g, seat, resp);
 }
 
-static void handle_logout(int slot, Response *resp) {
+void handle_logout(int slot, Response *resp) {
     char saved_login[MAX_NAME];
     strcpy(saved_login, state->players[slot].login);
     handle_quit_game(slot, resp);
@@ -692,7 +691,7 @@ static void handle_logout(int slot, Response *resp) {
         slot, saved_login);
 }
 
-static void process_request(int slot) {
+void process_request(int slot) {
     Request req = state->requests[slot];
     Response resp;
     memset(&resp, 0, sizeof(resp));
@@ -745,7 +744,7 @@ static void process_request(int slot) {
     sem_post(resp_sems[slot]);
 }
 
-static void server_loop(void) {
+void server_loop() {
     printf("Server started. Waiting for requests...\n");
     while (running) {
         if (sem_wait(request_sem) == -1) {
@@ -771,17 +770,14 @@ static void server_loop(void) {
     printf("Server shutting down.\n");
 }
 
-int main(void) {
+int main() {
     srand((unsigned int)time(NULL));
     if (setup_ipc() != 0) {
         fprintf(stderr, "Error while initializing IPC.\n");
         return 1;
     }
-    struct sigaction sa;
-    memset(&sa, 0, sizeof(sa));
-    sa.sa_handler = handle_signal;
-    sigaction(SIGINT, &sa, NULL);
-    sigaction(SIGTERM, &sa, NULL);
+    signal(SIGINT, handle_signal);
+    signal(SIGTERM, handle_signal);
 
     server_loop();
     cleanup_ipc();

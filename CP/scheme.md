@@ -158,8 +158,8 @@ graph TB
     SlotSems -.->|protects| Requests
     RespSems -.->|signals| Client
 
-    style SHM fill:#4fc3f7
-    style Client fill:#ffb74d
-    style Server fill:#81c784
-    style CommonH fill:#ba68c8
+    style SHM fill:#ffffff
+    style Client fill:#ffffff
+    style Server fill:#ffffff
+    style CommonH fill:#ffffff
 ```

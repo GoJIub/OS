@@ -11,19 +11,19 @@
 
 #include "common.h"
 
-static SharedState *state = NULL;
-static int shm_fd = -1;
-static sem_t *request_sem = NULL;
-static sem_t *slot_sems[MAX_PLAYERS];
-static sem_t *resp_sems[MAX_PLAYERS];
-static int my_slot = -1;
-static char my_login[MAX_NAME];
+SharedState *state = NULL;
+int shm_fd = -1;
+sem_t *request_sem = NULL;
+sem_t *slot_sems[MAX_PLAYERS];
+sem_t *resp_sems[MAX_PLAYERS];
+int my_slot = -1;
+char my_login[MAX_NAME];
 
-static void build_sem_name(const char *prefix, int idx, char *out, size_t len) {
+void build_sem_name(const char *prefix, int idx, char *out, size_t len) {
     snprintf(out, len, "%s%d", prefix, idx);
 }
 
-static int attach_ipc(void) {
+int attach_ipc() {
     shm_fd = shm_open(SHM_NAME, O_RDWR, 0666);
     if (shm_fd < 0) {
         perror("shm_open");
@@ -58,42 +58,32 @@ static int attach_ipc(void) {
     return 0;
 }
 
-static void close_ipc(void) {
-    if (state && state != MAP_FAILED) {
+void close_ipc() {
+    if (state && state != MAP_FAILED)
         munmap(state, sizeof(SharedState));
-    }
-    if (shm_fd >= 0) {
-        close(shm_fd);
-    }
-    if (request_sem && request_sem != SEM_FAILED) {
+    if (shm_fd >= 0) close(shm_fd);
+    if (request_sem && request_sem != SEM_FAILED)
         sem_close(request_sem);
-    }
     for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (slot_sems[i] && slot_sems[i] != SEM_FAILED) {
+        if (slot_sems[i] && slot_sems[i] != SEM_FAILED)
             sem_close(slot_sems[i]);
-        }
-        if (resp_sems[i] && resp_sems[i] != SEM_FAILED) {
+        if (resp_sems[i] && resp_sems[i] != SEM_FAILED)
             sem_close(resp_sems[i]);
-        }
     }
 }
 
-static int find_free_slot(void) {
+int find_free_slot() {
     for (int i = 0; i < MAX_PLAYERS; i++) {
         sem_wait(slot_sems[i]);
         int available = !state->players[i].active && state->request_ready[i] == 0;
         sem_post(slot_sems[i]);
-        if (available) {
-            return i;
-        }
+        if (available) return i;
     }
     return -1;
 }
 
-static int send_request(const Request *req, Response *resp) {
-    if (my_slot < 0) {
-        return -1;
-    }
+int send_request(const Request *req, Response *resp) {
+    if (my_slot < 0) return -1;
     sem_wait(slot_sems[my_slot]);
     if (state->request_ready[my_slot]) {
         fprintf(stderr, "Предыдущий запрос еще обрабатывается.\n");
@@ -106,9 +96,7 @@ static int send_request(const Request *req, Response *resp) {
     sem_post(request_sem);
 
     while (sem_wait(resp_sems[my_slot]) == -1) {
-        if (errno == EINTR) {
-            continue;
-        }
+        if (errno == EINTR) continue;
         perror("sem_wait resp");
         return -1;
     }
@@ -118,11 +106,9 @@ static int send_request(const Request *req, Response *resp) {
     return 0;
 }
 
-static void print_board(const char *title, CellState board[BOARD_SIZE][BOARD_SIZE]) {
+void print_board(const char *title, CellState board[BOARD_SIZE][BOARD_SIZE]) {
     printf("%s\n   ", title);
-    for (int x = 0; x < BOARD_SIZE; x++) {
-        printf(" %d", x + 1);
-    }
+    for (int x = 0; x < BOARD_SIZE; x++) printf(" %d", x + 1);
     printf("\n");
     for (int y = 0; y < BOARD_SIZE; y++) {
         printf("%2d ", y + 1);
@@ -148,24 +134,17 @@ static void print_board(const char *title, CellState board[BOARD_SIZE][BOARD_SIZ
     }
 }
 
-static void print_boards_if_available(const Response *resp) {
-    if (!resp->has_boards) {
-        return;
-    }
+void print_boards_if_available(const Response *resp) {
+    if (!resp->has_boards) return;
     print_board("Ваше поле:", (CellState (*)[BOARD_SIZE])resp->your_board);
     print_board("Поле соперника (видны только выстрелы):", (CellState (*)[BOARD_SIZE])resp->enemy_board);
     if (resp->winner_slot != -1) {
-        if (resp->winner_slot == my_slot) {
-            printf("Вы победили!\n");
-        } else {
-            printf("Победил соперник.\n");
-        }
-    } else {
-        printf("Ход: %s\n", resp->your_turn ? "ваш" : "соперника");
-    }
+        if (resp->winner_slot == my_slot) printf("Вы победили!\n");
+        else printf("Победил соперник.\n");
+    } else printf("Ход: %s\n", resp->your_turn ? "ваш" : "соперника");
 }
 
-static void prompt_line(const char *label, char *out, size_t len) {
+void prompt_line(const char *label, char *out, size_t len) {
     printf("%s", label);
     fflush(stdout);
     if (fgets(out, (int)len, stdin)) {
@@ -173,12 +152,10 @@ static void prompt_line(const char *label, char *out, size_t len) {
         if (n > 0 && out[n - 1] == '\n') {
             out[n - 1] = '\0';
         }
-    } else {
-        out[0] = '\0';
-    }
+    } else out[0] = '\0';
 }
 
-static void login_flow(void) {
+void login_flow() {
     Response resp;
     while (1) {
         my_slot = find_free_slot();
@@ -200,7 +177,7 @@ static void login_flow(void) {
     }
 }
 
-static int current_game_id(void) {
+int current_game_id() {
     int gid = -1;
     sem_wait(slot_sems[my_slot]);
     gid = state->players[my_slot].game_id;
@@ -208,7 +185,7 @@ static int current_game_id(void) {
     return gid;
 }
 
-static void show_menu(void) {
+void show_menu() {
     int gid = current_game_id();
     printf("\n==== Морской бой ====\n");
     printf("Вы: %s | Игра: %s\n", my_login, gid >= 0 ? "в игре" : "нет");
@@ -226,14 +203,12 @@ static void show_menu(void) {
     fflush(stdout);
 }
 
-static void handle_response(const Response *resp) {
-    if (resp->message[0]) {
-        printf("%s\n", resp->message);
-    }
+void handle_response(const Response *resp) {
+    if (resp->message[0]) printf("%s\n", resp->message);
     print_boards_if_available(resp);
 }
 
-static void handle_sigint(int sig) {
+void handle_sigint(int sig) {
     (void)sig;
     if (my_slot >= 0) {
         Request req;
@@ -248,23 +223,19 @@ static void handle_sigint(int sig) {
     exit(0);
 }
 
-int main(void) {
-    if (attach_ipc() != 0) {
-        return 1;
-    }
+int main() {
+    if (attach_ipc() != 0) return 1;
     signal(SIGINT, handle_sigint);
+    signal(SIGTERM, handle_sigint);
     login_flow();
     int running = 1;
     while (running) {
         show_menu();
         char line[64];
-        if (!fgets(line, sizeof(line), stdin)) {
-            break;
-        }
+        if (!fgets(line, sizeof(line), stdin)) break;
 
         int choice = 0;
 
-        // --- Проверка: есть ли буквы в строке ---
         int has_letter = 0;
         for (int i = 0; line[i] != '\0'; i++) {
             if (isalpha((unsigned char)line[i])) {
@@ -273,11 +244,8 @@ int main(void) {
             }
         }
 
-        if (has_letter) {
-            choice = 11;   // спец-кейс, если введены буквы
-        } else {
-            choice = atoi(line);  // иначе обычный выбор
-        }
+        if (has_letter) choice = 11;
+        else choice = atoi(line);
         Response resp;
         Request req;
         memset(&req, 0, sizeof(req));
